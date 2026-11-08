@@ -59,3 +59,14 @@ After pairing, open **Settings → Bluetooth → (i)** next to your PC and turn 
 ## Desktop app
 
 See [apps/desktop/README.md](apps/desktop/README.md).
+
+## Install
+
+Download the latest `.deb` from the [Releases page](https://github.com/kobalt42z/phoneSymbiosis/releases) and run:
+
+```sh
+sudo apt install ./PhoneSymbiosis_*_amd64.deb
+```
+
+Maintainers: releases are built by `.github/workflows/release.yml` when a
+`vX.Y.Z` tag matching the app version is pushed.
