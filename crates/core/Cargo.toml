@@ -1,0 +1,12 @@
+[package]
+name = "phonesym-core"
+description = "Platform-independent types and interfaces for PhoneSymbiosis. No OS code lives here."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+tokio = { workspace = true, features = ["sync"] }

@@ -1,0 +1,12 @@
+#!/bin/bash
+cat <<'J'
+[
+ { "id": 33, "type": "PipeWire:Interface:Metadata", "props": { "metadata.name": "default" },
+   "metadata": [ { "subject": 0, "key": "default.audio.sink", "type": "Spa:String:JSON", "value": { "name": "alsa_output.speakers" } },
+                 { "subject": 0, "key": "default.audio.source", "type": "Spa:String:JSON", "value": { "name": "bluez_input.A4_83_E7_12_34_56.0" } } ] },
+ { "id": 48, "type": "PipeWire:Interface:Node", "info": { "props": { "node.name": "alsa_output.speakers", "media.class": "Audio/Sink", "priority.session": 1000 } } },
+ { "id": 49, "type": "PipeWire:Interface:Node", "info": { "props": { "node.name": "alsa_input.mic", "media.class": "Audio/Source", "priority.session": 2000 } } },
+ { "id": 81, "type": "PipeWire:Interface:Node", "info": { "props": { "node.name": "bluez_input.A4_83_E7_12_34_56.0", "media.class": "Audio/Source", "api.bluez5.address": "A4:83:E7:12:34:56", "api.bluez5.profile": "headset-audio-gateway" } } },
+ { "id": 82, "type": "PipeWire:Interface:Node", "info": { "props": { "node.name": "bluez_output.A4_83_E7_12_34_56.0", "media.class": "Audio/Sink", "api.bluez5.address": "A4:83:E7:12:34:56", "api.bluez5.profile": "headset-audio-gateway" } } }
+]
+J

@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "pw-loopback $*" >> "$(dirname "$0")/../loopback.log"
+exec sleep 30
