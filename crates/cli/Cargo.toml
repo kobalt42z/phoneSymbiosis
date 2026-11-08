@@ -1,0 +1,19 @@
+[package]
+name = "phonesym-cli"
+description = "Command-line tool to try every PhoneSymbiosis feature without the GUI."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "phonesym"
+path = "src/main.rs"
+
+[dependencies]
+phonesym-platform.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+tracing-subscriber.workspace = true
+clap = { version = "4", features = ["derive"] }

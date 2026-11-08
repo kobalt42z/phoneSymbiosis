@@ -1,0 +1,16 @@
+[package]
+name = "phonesym-backend-linux"
+description = "Linux backend: BlueZ (pairing, contacts, SMS) and PipeWire (calls, audio), all over D-Bus."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+phonesym-core.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+futures-util.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zbus.workspace = true

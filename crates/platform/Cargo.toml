@@ -1,0 +1,14 @@
+[package]
+name = "phonesym-platform"
+description = "Picks the right backend for the OS being built. Front ends depend on this crate only."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+phonesym-core.workspace = true
+
+# One block per OS. To add Windows: create crates/backends/windows and add
+# [target.'cfg(target_os = "windows")'.dependencies] phonesym-backend-windows = ...
+[target.'cfg(target_os = "linux")'.dependencies]
+phonesym-backend-linux.workspace = true
