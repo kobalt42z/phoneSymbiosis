@@ -69,4 +69,4 @@ sudo apt install ./PhoneSymbiosis_*_amd64.deb
 ```
 
 Maintainers: releases are built by `.github/workflows/release.yml` when a
-`vX.Y.Z` tag matching the app version is pushed.
+release (or tag, `0.2.0` or `v0.2.0`) matching the app version is created.
