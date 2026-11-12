@@ -351,6 +351,17 @@ pub fn map_call_error(context: &str, e: zbus::Error) -> Error {
     if is_gone_error(&e) {
         return Error::NotConnected(format!("{context}: OBEX session is gone ({e})"));
     }
+    // An iPhone that hasn't been allowed to share messages/contacts with this
+    // PC accepts the connection but never answers, so obexd times out.
+    if let zbus::Error::MethodError(_, Some(msg), _) = &e {
+        if msg.to_ascii_lowercase().contains("timed out waiting for response") {
+            let target = if context.contains("Phonebook") { Target::Pbap } else { Target::Map };
+            return Error::Refused(format!(
+                "{context}: the phone did not answer. Hint: {}",
+                target.hint()
+            ));
+        }
+    }
     dbus_util::map_err(context, e)
 }
 

@@ -1,5 +1,6 @@
 <!-- Bluetooth adapter + devices: scan, pair, connect, disconnect, forget. -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import * as api from "../lib/api";
   import EmptyState from "../lib/components/EmptyState.svelte";
   import { phone } from "../lib/stores/phone.svelte";
@@ -20,7 +21,9 @@
     }
   }
 
-  $effect(() => {
+  // Load once when the view opens. (An $effect here re-ran on every
+  // loading/error change and retried a failing download in a loop.)
+  onMount(() => {
     loadAdapter();
     phone.run(api.devices()).then((d) => d && (phone.devices = d));
   });

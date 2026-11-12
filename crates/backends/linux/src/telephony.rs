@@ -31,7 +31,7 @@ use service::{
 };
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use zbus::zvariant::{ObjectPath, OwnedObjectPath, Value};
+use zbus::zvariant::{ObjectPath, Value};
 use zbus::Connection;
 
 /// A connected phone as seen by the telephony service.
@@ -79,7 +79,6 @@ impl Telephony {
     }
 }
 
-type GetModemsReply = Vec<(OwnedObjectPath, PropMap)>;
 
 impl Inner {
     fn with_state<R>(&self, f: impl FnOnce(&mut State) -> R) -> R {
@@ -131,13 +130,12 @@ impl Inner {
         svc: &TelephonyService,
         conn: &Connection,
     ) -> Result<Vec<(String, Address)>> {
-        let modems: GetModemsReply = dbus_util::call(
+        let modems = dbus_util::call_object_list(
             conn,
             svc.name,
             svc.manager_path,
             OFONO_MANAGER,
             "GetModems",
-            &(),
         )
         .await
         .map_err(|e| map_err("telephony GetModems", e))?;
@@ -190,13 +188,12 @@ impl Inner {
         gw: &str,
         address: &Address,
     ) -> Result<Vec<Call>> {
-        let raw: GetModemsReply = dbus_util::call(
+        let raw = dbus_util::call_object_list(
             conn,
             svc.name,
             gw,
             OFONO_VOICE_CALL_MANAGER,
             "GetCalls",
-            &(),
         )
         .await
         .map_err(|e| map_err("telephony GetCalls", e))?;

@@ -123,6 +123,58 @@ impl BluezManager {
             .map_err(|e| map_err(&format!("set {name} on {address}"), e))
     }
 
+    /// Scan until `address` shows up again (at most ~12 s).
+    async fn rediscover(&self, address: &Address) -> Result<Device> {
+        if let Err(e) = self.adapter_call("StartDiscovery").await {
+            tracing::debug!("StartDiscovery: {e}");
+        }
+        let mut found = None;
+        for _ in 0..12 {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            if let Ok(d) = self.device(address).await {
+                found = Some(d);
+                break;
+            }
+        }
+        if let Err(e) = self.adapter_call("StopDiscovery").await {
+            tracing::debug!("StopDiscovery: {e}");
+        }
+        found.ok_or_else(|| {
+            Error::DeviceNotFound(format!(
+                "{address} is not visible. Open Settings > Bluetooth on the iPhone so it can be found, then try again"
+            ))
+        })
+    }
+
+    /// Pairing is done; now bring up the profiles. The iPhone often connects
+    /// by itself at the same moment, so "in progress" / "already connected"
+    /// are fine, and a failure here must not report the pairing as failed.
+    async fn connect_after_pairing(&self, address: &Address) {
+        for attempt in 0..3 {
+            match self.connect(address).await {
+                Ok(()) => return,
+                Err(e) => {
+                    let text = e.to_string();
+                    if text.contains("AlreadyConnected") || text.contains("InProgress") {
+                        return;
+                    }
+                    if matches!(self.device(address).await, Ok(d) if d.connected) {
+                        return;
+                    }
+                    if attempt == 2 {
+                        self.events.emit(PhoneEvent::Warning {
+                            message: format!(
+                                "Paired with {address}, but connecting failed ({text}). It should connect by itself; if not, press Connect."
+                            ),
+                        });
+                        return;
+                    }
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                }
+            }
+        }
+    }
+
     async fn adapter_call(&self, method: &str) -> Result<()> {
         let path = self.adapter_path().await?;
         let conn = self.conn().await?;
@@ -239,11 +291,24 @@ impl BluetoothManager for BluezManager {
     }
 
     async fn pair(&self, address: &Address) -> Result<()> {
-        let already = self.device(address).await?.paired;
-        if !already {
+        // BlueZ forgets unpaired phones ~30 s after a scan ends, so if the
+        // user took a while to click "Pair", look for the phone again.
+        let device = match self.device(address).await {
+            Ok(d) => d,
+            Err(Error::DeviceNotFound(_)) => self.rediscover(address).await?,
+            Err(e) => return Err(e),
+        };
+
+        if !device.paired {
+            // Trust first: right after bonding the iPhone opens its
+            // hands-free and contacts links by itself, and BlueZ would ask us
+            // to authorize each one for an untrusted device.
+            if let Err(e) = self.set_device_prop(address, "Trusted", Value::from(true)).await {
+                tracing::debug!("could not pre-trust {address}: {e}");
+            }
             match self.device_call(address, "Pair").await {
                 Ok(()) => {}
-                // "AlreadyExists" means it got paired meanwhile: fine.
+                // It got paired meanwhile (e.g. from the phone side): fine.
                 Err(Error::Backend(m)) if m.contains("AlreadyExists") => {}
                 Err(e) => return Err(e),
             }
@@ -251,7 +316,8 @@ impl BluetoothManager for BluezManager {
         // Trusted lets the phone reconnect by itself later without prompts.
         self.set_device_prop(address, "Trusted", Value::from(true))
             .await?;
-        self.connect(address).await
+        self.connect_after_pairing(address).await;
+        Ok(())
     }
 
     async fn confirm_pairing(&self, address: &Address, accept: bool) -> Result<()> {

@@ -109,6 +109,42 @@ where
     reply.body().deserialize::<R>()
 }
 
+/// Objects with their properties, as returned by oFono-style `GetModems` /
+/// `GetCalls`.
+pub type ObjectList = Vec<(zbus::zvariant::OwnedObjectPath, PropMap)>;
+
+/// Call an oFono-style `GetModems` / `GetCalls`.
+///
+/// oFono documents the reply as an array of structs, `a(oa{sv})`, but some
+/// PipeWire releases send a dictionary, `a{oa{sv}}`, with the same content.
+/// Accept both so the app works on either.
+pub async fn call_object_list(
+    conn: &Connection,
+    dest: &str,
+    path: &str,
+    iface: &str,
+    method: &str,
+) -> zbus::Result<ObjectList> {
+    let reply = conn
+        .call_method(Some(dest), path, Some(iface), method, &())
+        .await?;
+    parse_object_list(&reply)
+}
+
+/// Decode either reply shape of [`call_object_list`].
+pub fn parse_object_list(reply: &zbus::Message) -> zbus::Result<ObjectList> {
+    let body = reply.body();
+    if body.signature().to_string() == "a{oa{sv}}" {
+        let map: HashMap<zbus::zvariant::OwnedObjectPath, PropMap> = body.deserialize()?;
+        let mut list: ObjectList = map.into_iter().collect();
+        // Keep a stable order (ag0 before ag1, call0 before call1).
+        list.sort_by(|a, b| a.0.as_str().cmp(b.0.as_str()));
+        Ok(list)
+    } else {
+        body.deserialize()
+    }
+}
+
 /// Call a method and ignore whatever it returns (some services return an
 /// object path, others nothing, for the same method).
 pub async fn call_void<B>(
@@ -232,4 +268,36 @@ pub fn get_u8_lenient(props: &PropMap, key: &str) -> Option<u8> {
         return u8::try_from(x).ok();
     }
     None
+}
+
+#[cfg(test)]
+mod object_list_tests {
+    use super::*;
+    use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+
+    fn props() -> PropMap {
+        PropMap::from([("State".to_string(), OwnedValue::from(zbus::zvariant::Str::from("active")))])
+    }
+
+    #[test]
+    fn reads_array_of_structs() {
+        let path = OwnedObjectPath::try_from("/ag0").unwrap();
+        let body: ObjectList = vec![(path, props())];
+        let msg = zbus::Message::method_call("/", "GetModems").unwrap().build(&(body,)).unwrap();
+        let list = parse_object_list(&msg).unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].0.as_str(), "/ag0");
+    }
+
+    #[test]
+    fn reads_dictionary_sent_by_some_pipewire_versions() {
+        let mut body: HashMap<OwnedObjectPath, PropMap> = HashMap::new();
+        body.insert(OwnedObjectPath::try_from("/ag1").unwrap(), props());
+        body.insert(OwnedObjectPath::try_from("/ag0").unwrap(), props());
+        let msg = zbus::Message::method_call("/", "GetModems").unwrap().build(&(body,)).unwrap();
+        let list = parse_object_list(&msg).unwrap();
+        let paths: Vec<_> = list.iter().map(|(p, _)| p.as_str()).collect();
+        assert_eq!(paths, ["/ag0", "/ag1"]);
+        assert_eq!(get_str(&list[0].1, "State").as_deref(), Some("active"));
+    }
 }
