@@ -1,5 +1,6 @@
 <!-- Contacts downloaded from the phone (read-only): search, call, text. -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import * as api from "../lib/api";
   import EmptyState from "../lib/components/EmptyState.svelte";
   import { initials } from "../lib/format";
@@ -10,7 +11,9 @@
   const list = pim.contacts;
   let query = $state("");
 
-  $effect(() => {
+  // Load once when the view opens. (An $effect here re-ran on every
+  // loading/error change and retried a failing download in a loop.)
+  onMount(() => {
     list.load();
   });
 
