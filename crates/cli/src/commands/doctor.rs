@@ -41,7 +41,15 @@ pub async fn run(config: PlatformConfig) -> anyhow::Result<()> {
     match phonesym_platform::init(config).await {
         Ok(platform) => {
             checks.push(bluetooth_check(&platform).await);
-            checks.push(telephony_check(&platform).await);
+            if cfg!(target_os = "windows") {
+                checks.push(Check::new(
+                    true,
+                    "Windows build: Bluetooth device management only. Calls, call audio, contacts and SMS need the Linux build for now",
+                    "",
+                ));
+            } else {
+                checks.push(telephony_check(&platform).await);
+            }
         }
         Err(e) => checks.push(Check::new(
             false,
@@ -153,13 +161,14 @@ async fn session_bus_has(name: &str) -> bool {
 }
 
 /// Is an executable called `program` somewhere in `$PATH`?
+#[cfg(target_os = "linux")]
 fn in_path(program: &str) -> bool {
     std::env::var_os("PATH")
         .map(|paths| std::env::split_paths(&paths).any(|dir| is_executable(&dir.join(program))))
         .unwrap_or(false)
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 fn is_executable(path: &std::path::Path) -> bool {
     use std::os::unix::fs::PermissionsExt;
     path.metadata()
@@ -167,7 +176,3 @@ fn is_executable(path: &std::path::Path) -> bool {
         .unwrap_or(false)
 }
 
-#[cfg(not(unix))]
-fn is_executable(path: &std::path::Path) -> bool {
-    path.is_file()
-}

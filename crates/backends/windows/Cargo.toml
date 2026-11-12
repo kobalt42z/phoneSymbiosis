@@ -1,0 +1,23 @@
+[package]
+name = "phonesym-backend-windows"
+description = "Windows backend: Bluetooth device management through WinRT. Calls, audio, contacts and SMS are not available yet."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+phonesym-core.workspace = true
+async-trait.workspace = true
+tokio = { workspace = true, features = ["rt", "time"] }
+tracing.workspace = true
+
+# The WinRT bindings only exist on Windows, so the crate builds as an empty
+# shell everywhere else (keeps `cargo build --workspace` working on Linux).
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.62", features = [
+    "Devices_Bluetooth",
+    "Devices_Enumeration",
+    "Devices_Radios",
+    "Foundation",
+    "Foundation_Collections",
+] }

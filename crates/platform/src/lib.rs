@@ -20,7 +20,12 @@ pub async fn init(config: PlatformConfig) -> Result<Platform> {
         phonesym_backend_linux::init(config).await
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "windows")]
+    {
+        phonesym_backend_windows::init(config).await
+    }
+
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
     {
         let _ = config;
         Err(Error::NotSupported(format!(
@@ -36,7 +41,11 @@ pub fn backend_name() -> &'static str {
     {
         phonesym_backend_linux::NAME
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "windows")]
+    {
+        phonesym_backend_windows::NAME
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
     {
         "none"
     }

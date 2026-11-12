@@ -8,7 +8,9 @@ license.workspace = true
 [dependencies]
 phonesym-core.workspace = true
 
-# One block per OS. To add Windows: create crates/backends/windows and add
-# [target.'cfg(target_os = "windows")'.dependencies] phonesym-backend-windows = ...
+# One block per OS.
 [target.'cfg(target_os = "linux")'.dependencies]
 phonesym-backend-linux.workspace = true
+
+[target.'cfg(target_os = "windows")'.dependencies]
+phonesym-backend-windows.workspace = true

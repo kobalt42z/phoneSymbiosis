@@ -16,6 +16,7 @@ Phonebook Access, Message Access), so no app is needed on the phone.
 crates/core              shared types, interfaces and events (no OS code)
 crates/platform          picks the right backend at build time
 crates/backends/linux    Linux implementation (BlueZ + PipeWire over D-Bus)
+crates/backends/windows  Windows implementation (WinRT Bluetooth, device management only)
 crates/cli               `phonesym` command-line tool
 apps/desktop             Tauri + Svelte desktop app
 docs/                    architecture and setup notes
@@ -67,6 +68,24 @@ Download the latest `.deb` from the [Releases page](https://github.com/kobalt42z
 ```sh
 sudo apt install ./PhoneSymbiosis_*_amd64.deb
 ```
+
+### Windows 11 (64-bit, preview)
+
+Download `PhoneSymbiosis_*_x64-setup.exe` (or the `.msi`) from the Releases
+page. Test builds of every commit are also attached to the "CI" runs in the
+Actions tab, as `phonesymbiosis-windows-x64`.
+
+The Windows build is limited by what Windows lets apps do over Bluetooth:
+
+| Feature                         | Windows |
+|---------------------------------|---------|
+| See adapter, turn Bluetooth on/off | yes  |
+| Scan, pair, forget a phone      | yes (Windows shows its own pairing prompt) |
+| Connect / disconnect            | done by Windows itself, in Settings > Bluetooth & devices |
+| Make, answer, end calls (HFP)   | no: Windows does not let apps act as a hands-free kit |
+| Call audio on PC speakers / mic | no: the Bluetooth call audio link is owned by the Windows driver |
+| Contacts and call history (PBAP)| not yet (needs a custom OBEX client) |
+| SMS (MAP)                       | not yet (needs a custom OBEX client) |
 
 Maintainers: releases are built by `.github/workflows/release.yml` when a
 release (or tag, `0.2.0` or `v0.2.0`) matching the app version is created.
