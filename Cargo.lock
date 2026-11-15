@@ -2635,6 +2635,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "phonesym-backend-windows"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "phonesym-core",
+ "tokio",
+ "tracing",
+ "windows",
+]
+
+[[package]]
 name = "phonesym-cli"
 version = "0.1.0"
 dependencies = [
@@ -2677,6 +2688,7 @@ name = "phonesym-platform"
 version = "0.1.0"
 dependencies = [
  "phonesym-backend-linux",
+ "phonesym-backend-windows",
  "phonesym-core",
 ]
 
