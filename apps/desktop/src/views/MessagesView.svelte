@@ -1,5 +1,6 @@
 <!-- SMS: conversations grouped by number, thread view, send box. -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import * as api from "../lib/api";
   import EmptyState from "../lib/components/EmptyState.svelte";
   import { formatTime, normalizeNumber } from "../lib/format";
@@ -15,7 +16,9 @@
   let newNumber = $state("");
   let sending = $state(false);
 
-  $effect(() => {
+  // Load once when the view opens. (An $effect here re-ran on every
+  // loading/error change and retried a failing download in a loop.)
+  onMount(() => {
     list.load();
     pim.contacts.load();
   });

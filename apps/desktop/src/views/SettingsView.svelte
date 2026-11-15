@@ -1,5 +1,6 @@
 <!-- App settings and a health check ("doctor"). -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import * as api from "../lib/api";
   import { phone } from "../lib/stores/phone.svelte";
   import type { Check, Settings } from "../lib/types";
@@ -9,7 +10,9 @@
   let checks = $state<Check[] | null>(null);
   let checking = $state(false);
 
-  $effect(() => {
+  // Load once when the view opens. (An $effect here re-ran on every
+  // loading/error change and retried a failing download in a loop.)
+  onMount(() => {
     api.getSettings().then((s) => {
       settings = s;
       savedAudio = s.auto_audio;

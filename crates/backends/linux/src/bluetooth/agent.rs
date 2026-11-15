@@ -26,7 +26,7 @@ pub const AGENT_PATH: &str = "/org/phonesym/agent";
 /// comparison for phones with this capability.
 const CAPABILITY: &str = "DisplayYesNo";
 /// How long we wait for the user to confirm a pairing code.
-const CONFIRM_TIMEOUT: Duration = Duration::from_secs(30);
+const CONFIRM_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Pairing confirmations waiting for an answer from the user.
 #[derive(Clone, Default)]
@@ -76,7 +76,8 @@ impl Agent {
             .ok_or_else(|| AgentError::Rejected(format!("unknown device {device}")))
     }
 
-    /// Only devices that are already paired may use services without asking.
+    /// Only paired (or trusted, i.e. being paired by us) devices may use
+    /// services without asking.
     async fn is_paired(&self, device: &ObjectPath<'_>) -> bool {
         let props = dbus_util::get_all_properties(
             &self.conn,
@@ -87,7 +88,7 @@ impl Agent {
         .await;
         props
             .ok()
-            .and_then(|p| get_bool(&p, "Paired"))
+            .map(|p| get_bool(&p, "Paired").unwrap_or(false) || get_bool(&p, "Trusted").unwrap_or(false))
             .unwrap_or(false)
     }
 }

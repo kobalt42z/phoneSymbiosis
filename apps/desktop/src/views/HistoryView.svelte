@@ -1,5 +1,6 @@
 <!-- Call history from the phone: filter by kind, click to call back. -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import * as api from "../lib/api";
   import EmptyState from "../lib/components/EmptyState.svelte";
   import { formatTime } from "../lib/format";
@@ -12,7 +13,9 @@
   const filters: (CallHistoryKind | "all")[] = ["all", "incoming", "outgoing", "missed"];
   const arrows: Record<CallHistoryKind, string> = { incoming: "↙", outgoing: "↗", missed: "✕" };
 
-  $effect(() => {
+  // Load once when the view opens. (An $effect here re-ran on every
+  // loading/error change and retried a failing download in a loop.)
+  onMount(() => {
     list.load();
     pim.contacts.load(); // for names
   });
