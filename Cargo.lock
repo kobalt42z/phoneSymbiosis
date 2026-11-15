@@ -2622,7 +2622,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-backend-linux"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "futures-util",
@@ -2636,7 +2636,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-backend-windows"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "phonesym-core",
@@ -2647,7 +2647,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -2660,7 +2660,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "serde",
@@ -2670,7 +2670,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-desktop"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "phonesym-platform",
  "serde",
@@ -2685,7 +2685,7 @@ dependencies = [
 
 [[package]]
 name = "phonesym-platform"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "phonesym-backend-linux",
  "phonesym-backend-windows",
